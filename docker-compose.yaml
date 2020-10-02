@@ -1,0 +1,19 @@
+version: '2'
+
+services:
+
+  shopee-home:
+    image: gcr.io/alexfm-2020/worpress:latest
+    build:
+      context: .
+      dockerfile: dockerfiles/app.docker
+    ports:
+      - 80:80
+    env_file: .env
+    container_name: shopee-home
+    working_dir: /var/www/html
+    volumes:
+      - wordpress:/var/www/html
+
+volumes:
+  wordpress:

@@ -1,0 +1,84 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: shopee-home
+  name: shopee-home
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: shopee-home
+status:
+  loadBalancer: {}
+
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: null
+  labels:
+    app: shopee-home-data
+  name: shopee-home-data
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+status: {}
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: shopee-home
+  name: shopee-home
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shopee-home
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 100%
+  template:
+    metadata:
+      labels:
+        app: shopee-home
+        version: latest    
+    spec:
+      containers:
+        - image: "gcr.io/alexfm-2020/shopee-home:latest"
+          args:
+            - "--ignore-db-dir=lost+found"
+          imagePullPolicy: IfNotPresent
+          name: shopee-home
+          ports:
+            - containerPort: 3306
+              protocol: TCP
+          envFrom:
+          - secretRef:
+              name: shopee-home-secret 
+          resources: {}
+          volumeMounts:
+          - mountPath: /var/www/html/
+            name: shopee-home-data
+          workingDir: /var/www/html
+      restartPolicy: Always
+      volumes:
+      - name: shopee-home-data
+        persistentVolumeClaim:
+          claimName: shopee-home-data
+status: {}
